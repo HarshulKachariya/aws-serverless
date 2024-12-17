@@ -1,0 +1,46 @@
+service: aws-practice
+
+# frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    USER_TABLE: !Ref UserTable
+
+plugins:
+  - serverless-iam-roles-per-function
+
+functions:
+  getUser:
+    handler: getUserById.handler
+    events:
+      - http:
+          path: user/{id}
+          method: get
+  createUser:
+    handler: createUser.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action: dynamodb:PutItem
+        Resource: !GetAtt UserTable.Arn
+    events:
+      - http:
+          path: user
+          method: post
+
+# dynamodb table
+resources:
+  Resources:
+    UserTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        TableName: "users"
+        AttributeDefinitions:
+          - AttributeName: userID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userID
+            KeyType: HASH
