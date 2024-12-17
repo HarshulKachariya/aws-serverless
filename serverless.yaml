@@ -1,46 +1,123 @@
 service: aws-practice
 
-# frameworkVersion: '3'
-
 provider:
   name: aws
-  runtime: nodejs18.x
+  runtime: nodejs20.x
   region: us-east-1
   environment:
-    USER_TABLE: !Ref UserTable
+    TODO_TABLE: !Ref TodoTable
 
 plugins:
   - serverless-iam-roles-per-function
 
+package:
+  individually: true
+  patterns:
+    - "!.env"
+    - "!.gitignore"
+    - "!README.md"
+
 functions:
-  getUser:
-    handler: getUserById.handler
-    events:
-      - http:
-          path: user/{id}
-          method: get
-  createUser:
-    handler: createUser.handler
+  getTodoById:
+    handler: getTodoById.handler
+    package:
+      patterns:
+        - "!getTodos.js"
+        - "!createTodo.js"
+        - "!updateTodo.js"
+        - "!deleteTodo.js"
     iamRoleStatements:
       - Effect: Allow
-        Action: dynamodb:PutItem
-        Resource: !GetAtt UserTable.Arn
+        Action:
+          - dynamodb:GetItem
+        Resource: !GetAtt TodoTable.Arn
     events:
       - http:
-          path: user
+          path: todo/{id}
+          method: get
+
+  getTodos:
+    handler: getTodos.handler
+    package:
+      patterns:
+        - "!getTodoById.js"
+        - "!createTodo.js"
+        - "!updateTodo.js"
+        - "!deleteTodo.js"
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Scan
+        Resource: !GetAtt TodoTable.Arn
+    events:
+      - http:
+          path: todo
+          method: get
+
+  createTodo:
+    handler: createTodo.handler
+    package:
+      patterns:
+        - "!getTodos.js"
+        - "!getTodoById.js"
+        - "!updateTodo.js"
+        - "!deleteTodo.js"
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt TodoTable.Arn
+    events:
+      - http:
+          path: todo
           method: post
 
-# dynamodb table
+  updateTodo:
+    handler: updateTodo.handler
+    package:
+      patterns:
+        - "!getTodos.js"
+        - "!createTodo.js"
+        - "!getTodoById.js"
+        - "!deleteTodo.js"
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: !GetAtt TodoTable.Arn
+    events:
+      - http:
+          path: todo/{id}
+          method: put
+
+  deleteTodo:
+    handler: deleteTodo.handler
+    package:
+      patterns:
+        - "!getTodos.js"
+        - "!createTodo.js"
+        - "!updateTodo.js"
+        - "!getTodoById.js"
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: !GetAtt TodoTable.Arn
+    events:
+      - http:
+          path: todo/{id}
+          method: delete
+
 resources:
   Resources:
-    UserTable:
-      Type: "AWS::DynamoDB::Table"
+    TodoTable:
+      Type: AWS::DynamoDB::Table
       Properties:
         BillingMode: PAY_PER_REQUEST
-        TableName: "users"
+        TableName: "todoTable"
         AttributeDefinitions:
-          - AttributeName: userID
+          - AttributeName: id
             AttributeType: S
         KeySchema:
-          - AttributeName: userID
+          - AttributeName: id
             KeyType: HASH

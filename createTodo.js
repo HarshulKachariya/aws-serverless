@@ -1,7 +1,4 @@
-const {
-  DynamoDBClient,
-  ConditionalOperator,
-} = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
 const Response = require("./response");
 const { v4 } = require("uuid");
@@ -9,7 +6,7 @@ const { v4 } = require("uuid");
 const client = new DynamoDBClient({ region: "us-east-1" });
 const ddbClient = DynamoDBDocumentClient.from(client);
 
-const TABLE_NAME = process.env.USER_TABLE;
+const TABLE_NAME = process.env.TODO_TABLE;
 
 module.exports.handler = async (event) => {
   console.log("event", event);
@@ -21,12 +18,14 @@ module.exports.handler = async (event) => {
       new PutCommand({
         TableName: TABLE_NAME,
         Item: {
-          userID: v4(),
-          userName: data.userName,
-          email: data.email,
-          mobile: data.mobile,
+          id: v4(),
+          title: data.title,
+          descrition: data.descrition,
+          priority: data.priority,
+          completed: false,
+          username: data.username,
         },
-        ConditionExpression: "attribute_not_exists(userID)",
+        ConditionExpression: "attribute_not_exists(id)",
       })
     );
 
