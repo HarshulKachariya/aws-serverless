@@ -13,6 +13,7 @@ const ddbClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TODO_TABLE;
 
 module.exports.handler = async (event) => {
+  console.log("event", event);
   try {
     const params = {
       TableName: TABLE_NAME,

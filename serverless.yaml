@@ -6,6 +6,9 @@ provider:
   region: us-east-1
   environment:
     TODO_TABLE: !Ref TodoTable
+  apiGateway:
+    apiKeySourceType: HEADER
+    minimumCompressionSize: 1024
 
 plugins:
   - serverless-iam-roles-per-function
@@ -53,6 +56,7 @@ functions:
       - http:
           path: todo
           method: get
+          private: true
 
   createTodo:
     handler: createTodo.handler
