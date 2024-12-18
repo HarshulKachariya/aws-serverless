@@ -4,11 +4,21 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: us-east-1
+  stage: ${opt:stage, 'dev'}
   environment:
     TODO_TABLE: !Ref TodoTable
   apiGateway:
-    apiKeySourceType: HEADER
-    minimumCompressionSize: 1024
+    apiKeys:
+      - name: api-key-${self:provider.stage}
+        value: super-secret-api-key-${self:provider.stage}
+    usagePlan:
+      throttle:
+        burstLimit: 10
+        rateLimit: 100
+      quota:
+        limit: 1000
+        period: DAY
+        offset: 0
 
 plugins:
   - serverless-iam-roles-per-function
